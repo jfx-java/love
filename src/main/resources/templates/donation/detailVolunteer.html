@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://wwww.thymeleaf.prg">
+<html lang="en">
+<head>
+    <link rel="shortcut icon" href="/images/love.ico" />
+    <meta charset="UTF-8">
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .divloading {
+            position: absolute;
+            z-index: 99;
+            top: 62%;
+            left: 51%;
+            width: 50px;
+            height: 50px;
+            display: none;
+        }
+
+        #popup {
+            position: fixed;
+            top:40%;
+            left:40%;
+            margin-left:-25px; /* width的一半的相反数 */
+            margin-top:-25px;  /* height的一半的相反数 */
+            z-index: 99999999;
+            background-color: #000000;
+            color: #fff5f6;
+            display: none;
+        }
+        #popup1 {
+            position: fixed;
+            top:40%;
+            left:40%;
+            margin-left:-25px; /* width的一半的相反数 */
+            margin-top:-25px;  /* height的一半的相反数 */
+            z-index: 99999999;
+            background-color: #000000;
+            color: #fff5f6;
+            display: none;
+        }
+        #subject{
+            margin: 5em auto;
+            background-color: #c6e38d;
+            width: 75%;
+            padding-left: 7%;
+        }
+
+        #close {
+            float: right;
+            background-color: #ee4611;
+        }
+        .imgClass{
+            width: 100px;
+            height: 100px;
+            display: inline-block;
+        }
+        .warning{
+            font-size: 10px;
+            color: #ac0626;
+        }
+    </style>
+    <title>查看详情</title>
+</head>
+<body>
+<div class="divloading">
+    <img src="/images/loading.gif" width="100%" height="100%"/>
+</div>
+<div id="popup">
+    <div id="close">关闭</div><br>
+    <div id="data">
+        称&nbsp;呼:<input id="name" type="text"><br>
+        手机号:<input id="telephone" text><br>
+        <input id="enlist" type="button" value="提交报名">
+    </div>
+</div>
+
+<div id="subject">
+    标题:<span th:text="${project.topic}"></span>
+    <p>
+        详细描述:&nbsp;&nbsp;<span th:text="${project.message}"> </span>
+    </p>
+    <p>审核员编号:<span th:text="${project.auditor}"></span></p>
+    <p>发起人:<span th:text="${project.accepterId}"></span></p>
+    <p>电话:<span th:text="${project.telephone}"></span></p>
+    <p>证明人:<span th:text="${project.certifier}"></span></p>
+    <p>地址:<span th:text="${project.address}"></span></p>
+    <p>需要志愿者人数:<span th:text="${project.volunteer}"></span></p>
+    <p>已报名人数:<span id="nowVolunteerNum" th:text="${project.nowVolunteer}"></span>
+        <input id="signUp" type="button" value="我要报名">
+    </p>
+    <div>证明资料：
+        <img class="imgClass" alt="证明1" th:src="${project.evidence1}"/>
+        <span  th:if="${project.evidence2}"th:remove="tag" >
+        <img class="imgClass" alt="证明2" th:src="${project.evidence2}"/>
+    </span>
+
+        <span  th:if="${project.evidence3}"th:remove="tag" >
+        <img class="imgClass" alt="证明3" th:src="${project.evidence3}"/>
+    </span>
+        <span  th:if="${project.evidence4}"th:remove="tag" >
+        <img class="imgClass" alt="证明4" th:src="${project.evidence4}"/>
+    </span>
+        <span  th:if="${project.evidence5}"th:remove="tag" >
+        <img class="imgClass" alt="证明5" th:src="${project.evidence5}"/>
+    </span>
+    </div>
+    <p>创建时间:<span th:text="${createTime}"></span>&nbsp;
+        截止时间:<span th:text="${endTime}"></span></p>
+    <form id="tipOffJump" action="/sharer/tipOffJump" method="post">
+        <input type="hidden" name="projectId" th:value="${project.id}">
+    </form>
+    <input type="button" id="tip_off" value="我要举报">
+</div>
+<script th:inline="javascript" src="/jquery/jquery-3.4.1.min.js"></script>
+<script>
+
+
+
+    $(function () {
+
+        $("#contribution").on("click",function () {
+            $("#popup1").show();
+        });
+
+        $("#tip_off").on("click",function () {
+            $("#tipOffJump").submit();
+        });
+
+
+        $("#signUp").on("click",function () {
+            $.ajax({
+                async:true,
+                url: "/sharer/queryVolunteer",//要提交的地址 *必填项*\
+                type:"post",
+                data: {//传的数据
+                    projectId: [[${project.id}]],
+                    sharerId:[[${session.sharer.id}]],
+                },
+                beforeSend:function(){
+                    $(".divloading").show();
+                },
+                //提交完成后执行，无论成功或者失败，通常配合loading使用
+                complete:function(){
+                    $(".divloading").hide();
+                },
+                //提交成功后调用的方法 *必填项*
+                success:function (response){
+                    if (response.isSuccess){
+                        if(response.isSignUp){
+                            $("#popup").show();
+                        }else {
+                            alert("您已经报过名啦，请关注 短信/电话 通知，不要迟到哦~")
+                        }
+                    }else {
+                        alert("很抱歉! 报名人数已满！")
+                    }
+                },
+                //出错了调用的方法 *必填项*
+                error:function (message) {
+                    alert("error:"+message);
+                }
+            });
+
+
+
+
+        });
+        $("#close").on("click",function () {
+            $("#popup").hide();
+        });
+        $("#close1").on("click",function () {
+            $("#popup1").hide();
+        });
+
+        $("#enlist").on("click",function () {
+            var name =$("#name").val();
+            var telephone=$("#telephone").val();
+            if (name == null || name == undefined || name.length <= 0) {
+                alert("请输入您的称呼！");
+            } else if(telephone == null || telephone == undefined || telephone.length <= 0) {
+                alert("请输入手机号！");
+            }else if (!(/^1[3|4|5|7|8][0-9]\d{4,8}$/).test(telephone)){
+                alert("手机号格式不正确！");}
+            else {
+                $.ajax({
+                    async:true,
+                    url: "/sharer/signUp",//要提交的地址 *必填项*\
+                    type:"post",
+                    data: {//传的数据
+                        projectId: [[${project.id}]],
+                        sharerId:[[${session.sharer.id}]],
+                        sharerName:name,
+                        sharerTelephone:telephone
+                    },
+                    beforeSend:function(){
+                        $(".divloading").show();
+                    },
+                    //提交完成后执行，无论成功或者失败，通常配合loading使用
+                    complete:function(){
+                        $(".divloading").hide();
+                        $("#popup").hide();
+                    },
+                    //提交成功后调用的方法 *必填项*
+                    success:function (response){
+                        if (response.isSuccess){
+                            if (response.isSigUpSuccess) {
+                                $("#nowVolunteerNum").text([[${project.nowVolunteer}]]+1);
+                                alert("报名成功！请关注 短信/电话 通知，不要迟到哦~");
+
+                            }else {
+                                alert("报名失败！请与管理员联系")
+                            }
+                        }else {
+                            alert("服务器异常！请与管理员联系")
+                        }
+                    },
+                    //出错了调用的方法 *必填项*
+                    error:function (message) {
+                        alert("error:"+message);
+                    }
+                });}
+        })
+    })
+</script>
+</body>
+</html>

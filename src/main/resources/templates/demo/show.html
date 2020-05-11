@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://wwww.thymeleaf.prg">
+<html lang="en">
+<head>
+    <link rel="shortcut icon" href="/images/love.ico" />
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div th:each="demo,index:${demos}">
+        <p th:text="${demo.id}"></p>
+        <p th:text="${demo.name}"></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://wwww.thymeleaf.prg">
+<html lang="en">
+<head>
+    <link rel="shortcut icon" href="/images/love.ico" />
+    <meta charset="UTF-8">
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .divloading {
+            position: absolute;
+            z-index: 99;
+            top: 62%;
+            left: 51%;
+            width: 50px;
+            height: 50px;
+            display: none;
+        }
+
+        #popup {
+            position: fixed;
+            top:40%;
+            left:40%;
+            margin-left:-25px; /* width的一半的相反数 */
+            margin-top:-25px;  /* height的一半的相反数 */
+            z-index: 99999999;
+            background-color: #000000;
+            color: #fff5f6;
+            display: none;
+        }
+        #popup1 {
+            position: fixed;
+            top:40%;
+            left:40%;
+            margin-left:-25px; /* width的一半的相反数 */
+            margin-top:-25px;  /* height的一半的相反数 */
+            z-index: 99999999;
+            background-color: #000000;
+            color: #fff5f6;
+            display: none;
+        }
+        #subject{
+            margin: 5em auto;
+            background-color: #c6e38d;
+            width: 75%;
+            padding-left: 7%;
+        }
+
+        #close {
+            float: right;
+            background-color: #ee4611;
+        }
+        .imgClass{
+            width: 100px;
+            height: 100px;
+            display: inline-block;
+        }
+        .warning{
+            font-size: 10px;
+            color: #ac0626;
+        }
+    </style>
+    <title>查看详情</title>
+</head>
+<body>
+<div class="divloading">
+    <img src="/images/loading.gif" width="100%" height="100%"/>
+</div>
+
+<div id="subject">
+    标题:<span th:text="${project.topic}"></span>
+    <p>
+        详细描述:&nbsp;&nbsp;<span th:text="${project.message}"> </span>
+    </p>
+    <p>审核员编号:<span th:text="${project.auditor}"></span></p>
+    <p>发起人:<span th:text="${project.accepterId}"></span></p>
+    <p>电话:<span th:text="${project.telephone}"></span></p>
+    <p>证明人:<span th:text="${project.certifier}"></span></p>
+    <p>地址:<span th:text="${project.address}"></span></p>
+    <p>需要志愿者人数:<span th:text="${project.volunteer}"></span></p>
+    <p>已报名人数:<span id="nowVolunteerNum" th:text="${project.nowVolunteer}"></span>
+        <span  th:if="${project.state==7}"th:remove="tag" ><input id="downExcel" type="button"  value="下载名单"></span>
+    </p>
+    <div>证明资料：
+        <img class="imgClass" alt="证明1" th:src="${project.evidence1}"/>
+        <span  th:if="${project.evidence2}"th:remove="tag" >
+        <img class="imgClass" alt="证明2" th:src="${project.evidence2}"/>
+    </span>
+
+        <span  th:if="${project.evidence3}"th:remove="tag" >
+        <img class="imgClass" alt="证明3" th:src="${project.evidence3}"/>
+    </span>
+        <span  th:if="${project.evidence4}"th:remove="tag" >
+        <img class="imgClass" alt="证明4" th:src="${project.evidence4}"/>
+    </span>
+        <span  th:if="${project.evidence5}"th:remove="tag" >
+        <img class="imgClass" alt="证明5" th:src="${project.evidence5}"/>
+    </span>
+    </div>
+    <p>申请时间:<span th:text="${applyTime}"></span></p>
+    <p>创建时间:<span th:text="${createTime}"></span>&nbsp;
+        截止时间:<span th:text="${endTime}"></span></p>
+
+
+</div>
+<script th:inline="javascript" src="/jquery/jquery-3.4.1.min.js"></script>
+<script>
+
+    $(function (){
+
+        $("#downExcel").on("click",function () {
+            // success: function(response, status, request) {
+            //     6         var disp = request.getResponseHeader('Content-Disposition');
+            //     7         if (disp && disp.search('attachment') != -1) {  //判断是否为文件
+            //         8             var form = $('<form method="POST" action="' + url + '">');
+            //         9             $.each(params, function(k, v) {
+            //             10                 form.append($('<input type="hidden" name="' + k +
+            //                 11                         '" value="' + v + '">'));
+            //             12             });
+            //         13             $('body').append(form);
+            //         14             form.submit(); //自动提交
+            //         15         }
+            //     16     }
+            var url ="/accepter/queryVolunteer";
+            var projectId = [[${project.id}]];
+            $.ajax({
+                async: true,
+                url:"/accepter/queryVolunteer",
+                type:"post",
+                data: {//传的数据
+                    id: projectId
+                },
+                beforeSend: function () {
+                    $(".divloading").show();
+                },
+                //提交完成后执行，无论成功或者失败，通常配合loading使用
+                complete: function () {
+                    $(".divloading").hide();
+                },
+                //提交成功后调用的方法 *必填项*
+                success: function (response,status,request) {
+                    var disp = request.getResponseHeader('Content-Disposition');
+                    if (disp && disp.search('attachment') != -1) {  //判断是否为文件
+                        var form = $('<form method="POST" action="' + url + '">');
+                            form.append($('<input type="hidden" name="id" value="' + projectId + '">'));
+                        $('body').append(form);
+                        form.submit(); //自动提交
+                        }
+                    },
+                //出错了调用的方法 *必填项*
+                error: function (message) {
+                    alert("error:" + message);
+                }
+            });
+
+        })
+
+
+
+    })
+</script>
+</body>
+
+</html>

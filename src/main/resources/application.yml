@@ -1,0 +1,85 @@
+# 修改端口
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: PT8H
+# 上传图片存储总目录
+path:
+  imagesPath: F:/love/imgs/
+  tipOffImgPath: F:/love/tipOffImgPath/
+
+#支付宝支付接口
+alipay:
+  #支付宝网关（固定）此为沙箱网关。正式网关为：https://openapi.alipay.com/gateway.do
+  URL: https://openapi.alipaydev.com/gateway.do
+  APPID: 2016101900719946
+  APP_PRIVATE_KEY: MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAM9sWYj6mUm43y3J/xpYKgw1yTwU2TYyx1cM7JyJh5eKxr3W2p5r3xBq0NzDKeqxzP42YeBjdz8i8Dep72bUH2Acz31xUMY8higtds1+VE69/BOempgn6/AEk4e4u1CjxGogrXA9tcTQYqlmCFQU197eGFk/VrkoexfHCeaC4QUDAgMBAAECgYBA+u2VtwQcj1kDbDuJ0kLh7lurgdCGZSQDxl29sGwU8nnOcSet55dK+luSPWW9S5Qvs3O4KxDpa5WbqpYAPcXR8rlRVS+iipu/j4Thro6Htsx8/Y3I1+GIySEBSZ5pcunO+vqgie5akLHXL1KMG6of7VGmxK/gobMi1OXRem7oKQJBAPOyaMxqJydEffJ81/pAvQmPO6YCPcZs9oLH/f8PXb82yluHGsj/Wo73PzFDm8Ud/J1UpbmdYsmpPJEJec5XFpUCQQDZ5SG68kVUGK1rSb7PJjtXOs7xanMsXHCW9R3i0q0v8yKY09hiqKsH+Fcmy0kl6jGP/CWorcmDkZJ92iPoir83AkBTlWeYZPhU4YsJNoSlUrsDolrlD3O8sPbD2HBnoQ+YW+SADBDFy791tZu4++VbcHOKStQkm7ScUi1x2Xwrp3cZAkEAsMfwtM7oppEa6ee78i7PiDcDPOSjqsMY6bDW3XcV4cg+MoX1kh3MHTxD4QqfPy6hpXLqTs8opiEOHCNGbN1cwwJBAMi/7GPiMegpUGGbiyruoM2o3vSfcPgsMnq6ac4n0SYQx3D1DsrxVA7H39g/iRIgw1NwXafnyGuEdUj4Ech7xiw=
+  FORMAT: json
+  CHARSET: UTF-8
+  ALIPAY_PUBLIC_KEY: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDIgHnOn7LLILlKETd6BFRJ0GqgS2Y3mn1wMQmyh9zEyWlz5p1zrahRahbXAfCfSqshSNfqOmAQzSHRVjCqjsAw1jyqrXaPdKBmr90DIpIxmIyKXv4GGAkPyJ/6FTFY99uhpiq0qadD/uSzQsefWo0aTvP/65zi3eof7TcZ32oWpwIDAQAB
+  SIGN_TYPE: RSA
+  NOTIFY_URL: http://localhost:8080/alipayNotifyNotice
+  RETURN_URL: http://localhost:8080/alipayReturnNotice
+  #应用公匙证书
+  app_cert_path: F:/alipayKey/appCertPublicKey_2016101900719946.crt
+  #支付宝公钥证书文件路径
+  alipay_cert_path: F:/alipayKey/alipayCertPublicKey_RSA2.crt
+  #支付宝CA根证书
+  alipay_root_cert_path: F:/alipayKey/alipayRootCert.crt
+  log_path: F:/alipayLog
+
+
+# 数据库
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/love?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT
+    username: root
+    password: 123
+    #Hikari连接池配置
+    hikari:
+      #最小连接数
+      minimum-idle: 5
+      #最大连接数
+      maximum-pool-size: 15
+      #是否自动提交
+      auto-commit: true
+      #最大空闲时间
+      idle-timeout: 30000
+      #连接池名
+      pool-name: DatebookHikariCP
+      #最大生命周期
+      max-lifetime: 900000
+      #连接超时时间
+      connection-timeout: 15000
+      #心跳检测
+      connection-test-query: SELECT 1
+
+# 开启下划线命名与驼峰命名自动转换
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+
+
+#榛子短信服务个人信息
+Zhenzi:
+  appid: 104197
+  appSecret: 793e88e3-af70-4d45-9ace-e9a713f12d24
+  apiUrl: https://sms_developer.zhenzikj.com
+#
+
+##thymeleaf start
+Spring:
+  thymeleaf:
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+  resources:
+#    配置静态资源映射
+    static-locations: classpath:/static/,file:F:/love/imgs/
+
+#日志配置
+#logging:
+logging:
+  config: classpath:LoggingConfig.xml

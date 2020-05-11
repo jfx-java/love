@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html xmlns:th="http://wwww.thymeleaf.prg">
+<html lang="en">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<head>
+    <link rel="shortcut icon" href="/images/love.ico"/>
+    <meta charset="utf-8">
+
+    <style type="text/css">
+        #popup {
+            position: fixed;
+            top: 20%;
+            left: 30%;
+            z-index: 99999999;
+            opacity: 0.7;
+            background-color: #000000;
+            color: #fff5f6;
+            display: none;
+        }
+
+        #popup2 {
+            position: fixed;
+            top: 20%;
+            right: 0%;
+            z-index: 99999999;
+            opacity: 0.7;
+            background-color: #067249;
+            color: #fff5f6;
+            display: none;
+        }
+
+        #data2 li {
+            width: 480px;
+        }
+
+        #close2 {
+            float: right;
+            background-color: #ee4611;
+        }
+
+        #close {
+            float: right;
+            background-color: #ee4611;
+        }
+    </style>
+    <title>管理员主页</title>
+</head>
+<div id="popup">
+    <div id="close">关闭</div>
+    <table id="data">
+
+    </table>
+</div>
+<div id="popup2">
+    <div id="close2">关闭</div>
+    <ul id="data2">
+
+    </ul>
+</div>
+<p>
+    【adminId】<span id="id" th:text="${session.admin.id}"></span>
+</p>
+
+<p>【操作】：
+<div><input id="startScanner" type="button" value="开启扫描器" onclick="startScanner()"></div>
+<p>【操作】：
+<div><input id="stopScanner" type="button" value="关闭扫描器" onclick="stopScanner()"></div>
+<p>【审核项目操作】：
+<div><input id="query" type="button" value="查询未审核项目" onclick="query()">&nbsp;&nbsp;
+    <input id="queryNowExamine" type="button" value="查询我的审核"
+           th:onclick="'javascript:queryNowExamine('+${session.admin.id}+');'">
+</div>
+<p>【审核举报操作】：
+<div><input id="queryTipOff" type="button" value="查询未审核举报" onclick="queryTipOff()">&nbsp;&nbsp;
+    <input id="queryExamineTipOff" type="button" value="查询我的举报审核"
+           th:onclick="'javascript:queryMyExamineTipOff('+${session.admin.id}+');'">
+</div>
+<br>
+<div id="newProject">
+
+</div>
+
+
+<script th:inline="javascript" src="/jquery/jquery-3.4.1.min.js"></script>
+<script>
+
+    $(function () {
+        openSocket();
+
+    });
+
+    var socket;
+
+
+    function examineTipOff(id) {
+        if (check()) {
+            socket.send('{"code":"1102","msg":' + id + '}')
+        }
+    }
+
+    function queryMyExamineTipOff(id) {
+        if (check()) {
+            socket.send('{"code":"1104","msg":' + id + '}')
+        }
+    }
+
+    function queryProjectById(id) {
+        if (check()) {
+            socket.send('{"code":"1103","msg":' + id + '}')
+        }
+    }
+
+    //TODO:
+    function queryTipOff() {
+        if (check()) {
+            socket.send('{"code":"1101"}')
+        }
+    }
+
+    function examineNoPass(id) {
+        if (check()) {
+            socket.send('{"code":"1019","msg":' + id + '}')
+        }
+    }
+
+    function examinePass(id) {
+        if (check()) {
+            socket.send('{"code":"1011","msg":' + id + '}')
+        }
+    }
+
+    function cancelExamine(id) {
+        if (check()) {
+            socket.send('{"code":"1010","msg":' + id + '}')
+        }
+    }
+
+    function examineTipOffPass(id) {
+        if (check()) {
+            socket.send('{"code":"1111","msg":' + id + '}')
+        }
+    }
+
+    function examineTipOffNoPass(id) {
+        if (check()) {
+            socket.send('{"code":"1119","msg":' + id + '}')
+        }
+    }
+
+    function examine(id) {
+        if (check()) {
+            socket.send('{"code":"1002","msg":' + id + '}')
+        }
+    }
+
+    function queryNowExamine(id) {
+        if (check()) {
+            socket.send('{"code":"1004","msg":' + id + '}')
+        }
+    }
+
+    function queryGoodsByid(id) {
+        if (check()) {
+            socket.send('{"code":"1003","msg":' + id + '}')
+        }
+
+    }
+
+    $("#close").on("click", function () {
+        $("#popup").hide();
+        $("#data").empty();
+    });
+
+
+    $("#close2").on("click", function () {
+        $("#popup2").hide();
+        $("#data2").empty();
+    });
+
+
+
+    function openSocket() {
+        if (typeof (WebSocket) == "undefined") {
+            console.log("您的浏览器不支持WebSocket");
+            alert("您的浏览器不支持WebSocket!");
+        } else {
+            console.log("您的浏览器支持WebSocket");
+            //实现化WebSocket对象，指定要连接的服务器地址与端口  建立连接
+            //等同于socket = new WebSocket("ws://localhost:8888/xxxx/im/25");
+            //var socketUrl="${request.contextPath}/im/"+$("#userId").val();
+
+            var socketUrl = "ws://127.0.0.1:8080/imserver/" + $("#id").text();
+            //socketUrl=socketUrl.replace("https","ws").replace("http","ws");
+            console.log(socketUrl);
+            if (socket != null) {
+                socket.close();
+                socket = null;
+            }
+            //建立连接
+            socket = new WebSocket(socketUrl);
+            //打开事件
+            socket.onopen = function () {
+                console.log("websocket已打开");
+                //socket.send("这是来自客户端的消息" + location.href + new Date());
+            };
+
+            //获得消息事件
+            socket.onmessage = function (msg) {
+                if (msg != null) {
+
+                    console.log(msg.data);
+                    if (isJsonString(msg.data)) {
+                        var a = JSON.parse(msg.data);
+                        //发现消息进入    开始处理前端触发逻辑
+                        if (a.code == 0) {
+                            alert(a.msg);
+                            $("#newProject").empty();
+                            $("#popup").hide();
+                            $("#popup2").hide();
+                        } else {
+                            //进入解析方法
+                            analyse(a);
+                        };
+                    }
+                }
+            };
+
+
+            //关闭事件
+            socket.onclose = function () {
+                alert("websocket已关闭");
+                console.log("websocket已关闭");
+            };
+            //发生了错误事件
+            socket.onerror = function () {
+                alert("websocket发生了错误");
+                console.log("websocket发生了错误");
+            }
+        }
+    }
+
+    function isJsonString(str) {
+        try {
+            if (typeof JSON.parse(str) == "object") {
+                return true;
+            }
+        } catch (e) {
+        }
+        return false;
+    }
+
+    function startScanner() {
+        if (check()) {
+            socket.send('{"code":"0000"}');
+        }
+    }
+
+
+    function stopScanner() {
+
+        if (check()) {
+            socket.send('{"code":"0001"}');
+        }
+    }
+
+    function query() {
+        if (check()) {
+            socket.send('{"code":"1001"}');
+        }
+    }
+
+    function check() {
+
+        if (typeof (WebSocket) == "undefined") {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function analyse(a) {
+        switch (a.code) {
+            case 9001:
+                showNewProject(a);
+                break;
+            case 9003:
+                showNeedGoods(a);
+                break;
+            case 9004:
+                showNowExamining(a);
+                break;
+            case 9101:
+                showNewTipOff(a);
+                break;
+            case 9104:
+                showExcaminingTipOff(a);
+                break;
+            case 9103:
+                showProjectById(a);
+                break;
+            default:
+                
+        }
+        // if (a.code == 9001) {
+        //     showNewProject(a);
+        // } else if (a.code == 9003) {
+        //     showNeedGoods(a);
+        // } else if (a.code == 9004) {
+        //     showNowExamining(a);
+        // } else if (a.code == 9101) {
+        //     showNewTipOff(a);
+        // } else if (a.code == 9104) {
+        //     showExcaminingTipOff(a);
+        // } else if (a.code == 9103) {
+        //     showProjectById(a);
+        // }
+    }
+    
+    function err(a) {
+        alert("数据格式错误！")
+        console.log(a)
+    }
+
+    function showProjectById(a) {
+        $("#data2").empty();
+        alert(a.msg);
+        var data = a.data;
+        var goods = (data.isGoods == 1) ? '是 <input type="button" value="查询所需物品" onclick="queryGoodsByid(' + data.id + ')" >' : '否';
+        var volunteerNum = (data.volunteer == null) ? '<li>' + "非志愿者类项目" + '</li>'
+            : '<li> 需要志愿者人数:   ' + data.volunteer + '</li>';
+        var moneyAndAlipayNum = (data.money == 0) ? '<li>' + "非捐款类项目" + '</li>'
+            : '<li>需要金额：  ' + data.money + '</li>' +
+            '<li>支付宝账号：  ' + data.alipayNum + '</li>';
+        var state = "";
+        switch (data.state) {
+            case 1:
+                state = '<li>项目状态：   申请中</li>';
+                break;
+            case 2:
+                state = '<li>项目状态：  正在运行</li>';
+                break;
+            case 3:
+                state =
+                    '<li>项目状态：  等待结项中</li>';
+                break;
+            case 4:
+                state =
+                    '<li>项目状态：  被强制关闭</li>';
+                break;
+            case 5:
+                state =
+                    '<li>项目状态：  暂停</li>';
+                break;
+            case 6:
+                state =
+                    '<li>项目状态：  进行结项中</li>';
+                break;
+            case 7:
+                state =
+                    '<li>项目状态：  结项完成关闭</li>';
+                break;
+
+
+        }
+
+        var project =
+            '<li>ID:  ' +
+            data.id +
+            '</li>' +
+            '<li>主题:  ' +
+            data.topic +
+            '</li>' +
+            '<li>求助人ID:  ' +
+            data.accepterId +
+            '</li>' +
+            '<li>电话:  ' +
+            data.telephone +
+            '</li>' +
+            '<li>求助详情: ' +
+            data.message +
+            ' </li>' +
+            '<li>证明人:  ' +
+            data.certifier +
+            '</li>' +
+            '<li>地址:  ' +
+            data.address +
+            '</li>' +
+            volunteerNum +
+            moneyAndAlipayNum +
+            '<li>是否需要物资:  ' +
+            goods +
+            '</li>' +
+            '<li>身份证件合照:  ' +
+            '<img width="100px" height="100px" src="' + data.imgurl + '" alt="身份证合照">' +
+            '</li>' +
+            '<li>证明文件1:  ' +
+            '<img width="100px" height="100px" src="' + data.evidence1 + '" alt="证明文件1">' +
+            '</li>' +
+            '<li>证明文件2:  ' +
+            '<img width="100px" height="100px" src="' + data.evidence2 + '" alt="证明文件2">' +
+            '</li>' +
+            '<li>证明文件3:  ' +
+            '<img width="100px" height="100px" src="' + data.evidence3 + '" alt="证明文件3">' +
+            '</li>' +
+            '<li>证明文件4:  ' +
+            '<img width="100px" height="100px" src="' + data.evidence4 + '" alt="证明文件4">' +
+            '</li>' +
+            '<li>证明文件5:  ' +
+            '<img width="100px" height="100px" src="' + data.evidence5 + '" alt="证明文件5">' +
+            '</li>' +
+            '<li>申请时间:  ' +
+            data.applyTime +
+            '</li>' +
+            '<li>结束时间:  ' +
+            data.endTime +
+            '</li>' +
+            state;
+
+
+        $("#data2").append(project);
+        $("#popup2").show();
+
+    };
+
+
+    function showExcaminingTipOff(a) {
+        $("#newProject").empty();
+        alert(a.msg);
+        var list = a.data;
+        var project = '';
+        for (var i = 0; i < a.dataLength; i++) {
+            var evidence2 = (list[i].evidence2 == null) ? "<td>无</td>" : '<td><img width="100px" height="100px" src="' + list[i].evidence2 + '" alt="举报证明2"></td>';
+            var evidence3 = (list[i].evidence3 == null) ? "<td>无</td>" : '<td><img width="100px" height="100px" src="' + list[i].evidence3 + '" alt="举报证明3"></td>';
+            var evidence4 = (list[i].evidence4 == null) ? "<td>无</td>" : '<td><img width="100px" height="100px" src="' + list[i].evidence4 + '" alt="举报证明4"></td>';
+            project = project + "<tr>" +
+                "<td>" + list[i].id + "</td>" +
+                "<td>" + list[i].sharerId + "</td>" +
+                "<td>" + list[i].projectId + "</td>" +
+                "<td>" + list[i].text + "</td>" +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence1 + '" alt="举报证明1"></td>' +
+                evidence2 +
+                evidence3 +
+                evidence4 +
+                "<td>" + list[i].state + "</td>" +
+                '<td>' +
+                '<input onclick="queryProjectById(' + list[i].projectId + ')" type="button" value="查看项目详情"><br>' +
+                '<input onclick="examineTipOffPass(' + list[i].id + ')" type="button" value="举报属实，终止项目"><br>' +
+                '<input onclick="examineTipOffNoPass(' + list[i].id + ')" type="button" value="举报不属实">' +
+                '</td></tr>';
+            var newProject = '<table border="1">' +
+                '<tr>' +
+                '<th>ID</th>' +
+                '<th>举报者ID</th>' +
+                '<th>项目ID</th>' +
+                '<th>举报文本</th>' +
+                '<th>举报证明1</th>' +
+                '<th>举报证明2</th>' +
+                '<th>举报证明3</th>' +
+                '<th>举报证明4</th>' +
+                '<th>状态</th>' +
+                '<th>操作</th>' +
+                '</tr>' + project +
+                '</table>';
+        }
+        $("#newProject").append(newProject);
+    }
+
+    function showNewTipOff(a) {
+        $("#newProject").empty();
+        alert(a.msg);
+        var list = a.data;
+        var project = '';
+        for (var i = 0; i < a.dataLength; i++) {
+            var evidence2 = (list[i].evidence2 == null) ? "<td>无</td>" : '<td><img width="100px" height="100px" src="' + list[i].evidence2 + '" alt="举报证明2"></td>';
+            var evidence3 = (list[i].evidence3 == null) ? "<td>无</td>" : '<td><img width="100px" height="100px" src="' + list[i].evidence3 + '" alt="举报证明3"></td>';
+            var evidence4 = (list[i].evidence4 == null) ? "<td>无</td>" : '<td><img width="100px" height="100px" src="' + list[i].evidence4 + '" alt="举报证明4"></td>';
+            project = project + "<tr>" +
+                "<td>" + list[i].id + "</td>" +
+                "<td>" + list[i].sharerId + "</td>" +
+                "<td>" + list[i].projectId + "</td>" +
+                "<td>" + list[i].text + "</td>" +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence1 + '" alt="举报证明1"></td>' +
+                evidence2 +
+                evidence3 +
+                evidence4 +
+                '<td><input onclick="examineTipOff(' + list[i].id + ')" type="button" value="举报审核"></td></tr>';
+            var newProject = '<table border="1">' +
+                '<tr>' +
+                '<th>ID</th>' +
+                '<th>举报者ID</th>' +
+                '<th>项目ID</th>' +
+                '<th>举报文本</th>' +
+                '<th>举报证明1</th>' +
+                '<th>举报证明2</th>' +
+                '<th>举报证明3</th>' +
+                '<th>举报证明4</th>' +
+                '<th>操作</th>' +
+                '</tr>' + project +
+                '</table>';
+        }
+        $("#newProject").append(newProject);
+
+    }
+
+
+    function showNowExamining(a) {
+        $("#newProject").empty();
+        alert(a.msg);
+        var list = a.data;
+        var project = '';
+        for (var i = 0; i < a.dataLength; i++) {
+            var goods = (list[i].isGoods == 1) ? '是 <input type="button" value="查询所需物品" onclick="queryGoodsByid(' + list[i].id + ')" >' : '否';
+            var volunteerAndAddress = (list[i].volunteer == null) ? '<td>' + "非志愿者类项目" + '</td>' +
+                '<td>' + list[i].address + '</td>' : '<td>' + list[i].volunteer + '</td>' +
+                '<td>' + list[i].address + '</td>';
+            var moneyAndAlipayNum = (list[i].money == 0) ? '<td>' + "非捐款类项目" + '</td>' +
+                '<td>' + "非捐款类项目" + '</td>' : '<td>' + list[i].money + '</td>' +
+                '<td>' + list[i].alipayNum + '</td>';
+            var examine = "";
+            switch (list[i].state) {
+                case 1:
+                    examine = '<td><input onclick="cancelExamine(' + list[i].id + ')" type="button"value="取消审核" ></td>' +
+                        '<td><input onclick="examinePass(' + list[i].id + ')" type="button"value="审核通过" ><input onclick="examineNoPass('+list[i].id+')" type="button"value="审核未通过" ></td>';
+                    break;
+                case 2:
+                    examine = '<td>审核通过项目正在运行</td>' +
+                        '<td>审核通过项目正在运行</td>';
+                    break;
+                case 3:
+                    examine = '<td>等待结项中</td>' +
+                        '<td>等带结项中</td>';
+                    break;
+                case 4:
+                    examine = '<td>项目已经被强制关闭</td>' +
+                        '<td>项目已经被强制关闭</td>';
+                    break;
+                case 5:
+                    examine = '<td>项目暂停中</td>' +
+                        '<td>项目暂停中</td>';;
+                    break;
+                case 6:
+                    examine = '<td>项目结项中</td>' +
+                        '<td>项目结项中</td>';;
+                    break;
+                case 7:
+                    examine = '<td>结项完成，已经关闭</td>' +
+                        '<td>结项完成，已经关闭</td>';
+                    break;
+            }
+
+            project = project + '<tr>' +
+                '<td>' + list[i].id + '</td>' +
+                '<td>' + list[i].topic + '</td>' +
+                '<td>' + list[i].accepterId + '</td>' +
+                '<td>' + list[i].telephone + '</td>' +
+                '<td>' + list[i].message + '</td>' +
+                '<td>' + list[i].certifier + '</td>' +
+                volunteerAndAddress +
+                moneyAndAlipayNum +
+                '<td>' + goods +
+                '</td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].imgurl + '" alt="身份证合照"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence1 + '" alt="证明文件1"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence2 + '" alt="证明文件2"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence3 + '" alt="证明文件3"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence4 + '" alt="证明文件4"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence5 + '" alt="证明文件5"></td>' +
+                '<td>' + list[i].applyTime + '</td>' +
+                '<td>' + list[i].endTime + '</td>' +
+                examine + '</tr>';
+        };
+        var newProject = '<table border="1">' +
+            '<tr>' +
+            '<th>ID</th>' +
+            '<th>主题</th>' +
+            '<th>求助人ID</th>' +
+            '<th>电话</th>' +
+            '<th>求助详情</th>' +
+            '<th>证明人</th>' +
+            '<th>需要志愿者人数</th>' +
+            '<th>地址</th>' +
+            '<th>需要资金</th>' +
+            '<th>支付宝账号</th>' +
+            '<th>是否需要物资</th>' +
+            '<th>身份证件合照</th>' +
+            '<th>证明文件1</th>' +
+            '<th>证明文件2</th>' +
+            '<th>证明文件3</th>' +
+            '<th>证明文件4</th>' +
+            '<th>证明文件5</th>' +
+            '<th>申请时间</th>' +
+            '<th>期望结束时间</th>' +
+            '<th>取消审核</th>' +
+            '<th>审核结果</th>' +
+            '</tr>' + project +
+            '</table>';
+        $("#newProject").append(newProject);
+    }
+
+
+    function showNeedGoods(a) {
+        $("#data").empty();
+        alert(a.msg);
+        var list = a.data;
+        var goods = "";
+        for (var i = 0; i < a.dataLength; i++) {
+            goods = goods + '<tr>' +
+                '<td>' + list[i].id + '</td>' +
+                '<td>' + list[i].projectId + '</td>' +
+                '<td>' + list[i].needGoodsName + '</td>' +
+                '<td>' + list[i].needGoodsNum + '</td>' +
+                '</tr>';
+        }
+        var showGoods =
+            '<tr>' +
+            '<th>ID</th>' +
+            '<th>项目ID</th>' +
+            '<th>需要物品名称</th>' +
+            '<th>需要物品数量</th>' +
+            '</tr>' + goods;
+        $("#data").append(showGoods);
+        $("#popup").show();
+    }
+
+
+    function showNewProject(a) {
+        $("#newProject").empty();
+        alert(a.msg);
+        var list = a.data;
+        var project = '';
+        for (var i = 0; i < a.dataLength; i++) {
+            var goods = (list[i].isGoods == 1) ? '是 <input type="button" value="查询所需物品" onclick="queryGoodsByid(' + list[i].id + ')" >' : '否';
+            var volunteerAndAddress = (list[i].volunteer == null) ? '<td>' + "不是志愿者类项目" + '</td>' +
+                '<td>' + list[i].address + '</td>' : '<td>' + list[i].volunteer + '</td>' +
+                '<td>' + list[i].address + '</td>';
+
+            var moneyAndAlipayNum = (list[i].money == 0) ? '<td>' + "非捐款类项目" + '</td>' +
+                '<td>' + "非捐款类项目" + '</td>' : '<td>' + list[i].money + '</td>' +
+                '<td>' + list[i].alipayNum + '</td>';
+            project = project + '<tr>' +
+                '<td>' + list[i].id + '</td>' +
+                '<td>' + list[i].topic + '</td>' +
+                '<td>' + list[i].accepterId + '</td>' +
+                '<td>' + list[i].telephone + '</td>' +
+                '<td>' + list[i].message + '</td>' +
+                '<td>' + list[i].certifier + '</td>' +
+                volunteerAndAddress +
+                moneyAndAlipayNum +
+                '<td>' + goods +
+                '</td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].imgurl + '" alt="身份证合照"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence1 + '" alt="证明文件1"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence2 + '" alt="证明文件2"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence3 + '" alt="证明文件3"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence4 + '" alt="证明文件4"></td>' +
+                '<td><img width="100px" height="100px" src="' + list[i].evidence5 + '" alt="证明文件5"></td>' +
+                '<td>' + list[i].applyTime + '</td>' +
+                '<td>' + list[i].endTime + '</td>' +
+                '<td><input onclick="examine(' + list[i].id + ')" type="button"value="进行审核" ></td>' +
+
+                '</tr>';
+        }
+        ;
+
+        var newProject = '<table border="1">' +
+            '<tr>' +
+            '<th>ID</th>' +
+            '<th>主题</th>' +
+            '<th>求助人ID</th>' +
+            '<th>电话</th>' +
+            '<th>求助详情</th>' +
+            '<th>证明人</th>' +
+            '<th>需要志愿者人数</th>' +
+            '<th>地址</th>' +
+            '<th>需要资金</th>' +
+            '<th>支付宝账号</th>' +
+            '<th>是否需要物资</th>' +
+            '<th>身份证件合照</th>' +
+            '<th>证明文件1</th>' +
+            '<th>证明文件2</th>' +
+            '<th>证明文件3</th>' +
+            '<th>证明文件4</th>' +
+            '<th>证明文件5</th>' +
+            '<th>申请时间</th>' +
+            '<th>期望结束时间</th>' +
+            '<th>是否进行审核</th>' +
+            '</tr>' + project +
+            '</table>';
+        $("#newProject").append(newProject);
+    }
+</script>
+
+
+</body>
+
+</html>

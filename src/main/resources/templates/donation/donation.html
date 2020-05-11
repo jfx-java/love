@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://wwww.thymeleaf.prg">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<head>
+    <link rel="shortcut icon" href="/images/love.ico"/>
+    <title>捐助</title>
+    <link rel="stylesheet" href="https://apps.bdimg.com/libs/bootstrap/3.2.0/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style type="text/css">
+        .top {
+            background-color: #c6e38d;
+            width: 100%;
+            height: 40px;
+            font-size: 20px;
+        }
+
+        .divloading {
+            position: absolute;
+            z-index: 99;
+            top: 62%;
+            left: 51%;
+            width: 50px;
+            height: 50px;
+            display: none;
+        }
+
+        a {
+            float: right;
+            margin-left: 30px;
+            margin-right: 40px;
+        }
+
+        .line {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+<div class="top">
+
+    <a href="/"> 返回首页</a>
+    <a href="/donation">更新项目</a>
+</div>
+
+
+<div class="divloading">
+    <img src="/images/loading.gif" width="100%" height="100%"/>
+</div>
+
+
+<div th:each="project:${pageInfo.list}">
+    <div class="col-md-4">
+        <div class="thumbnail">
+            <img width="100px" height="100px" th:src="${project.evidence1}"/>
+            <div class="caption">
+                <h4>
+                    标题:<span th:text="${project.topic}"></span>
+                </h4>
+                <p>
+                    详细描述：<span th:text="${project.message}"></span>
+                </p>
+                <p th:if="${project.money} ne 0">
+                    需要筹款：<span th:text="${project.money}"></span>&nbsp;&nbsp;
+                    已获筹款：<span th:text="${project.nowMoney}"></span>
+                </p>
+                <p>
+                    是否需要物品：<span th:switch="${project.isGoods}">
+                                    <span th:case="0">否</span>
+                                    <span th:case="1">是</span>
+                </span>&nbsp;&nbsp;
+                </p>
+                <p> 地址：<span th:text="${project.address}"></span>&nbsp;&nbsp;</p>
+                <p th:if="${project.volunteer}">
+                    活动地址：<span th:text="${project.address}"></span>&nbsp;&nbsp;
+                    需要志愿者人数：<span th:text="${project.volunteer}"></span>&nbsp;&nbsp;
+                    已报名人数：<span th:text="${project.nowVolunteer}"></span>
+
+                </p>
+                <p>
+                    <a class="btn btn-primary" th:href="@{'/detail?id='+${project.id}}">查看详情</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:if="${pageInfo.pageNum -1}ne 0" th:remove="tag">
+    <div class="col-md-12 column">
+        <p>
+            当前页：<span th:text="${pageInfo.pageNum}"></span>/<span th:text="${pageInfo.pages}"></span>
+            </br>总条数:<span th:text="${pageInfo.total}"></span>
+        </p>
+        <ul class="pagination">
+
+            <li th:if="${pageInfo.pageNum -1} ne 0">
+                <a class="btn btn-primary" th:href="@{'/donation?pn='+${pageInfo.pageNum -1}}">上一页</a>
+            </li>
+
+            <span th:if="${pageInfo.pageNum -1}ne 0" th:remove="tag">
+                    <li th:each=" p,1:${#numbers.sequence(1, pageInfo.pages)}">
+                        <a th:href="@{'/donation?pn='+${p}}"><span th:text="${p}"></span></a>
+                    </li>
+            </span>
+
+            <li th:if="${pageInfo.pageNum} ne ${pageInfo.pages}">
+                <a class="btn btn-primary" th:href="@{'/donation?pn='+${pageInfo.pageNum+1}}">下一页</a>
+            </li>
+
+        </ul>
+    </div>
+    <div>
+        <script th:inline="javascript" src="/jquery/jquery-3.4.1.min.js"></script>
+        <script>
+
+
+            function seeDetails(projectId) {
+                $.ajax({
+                    async: true,
+                    url: "/detail",//要提交的地址 *必填项*\
+                    type: "get",
+                    data: {//传的数据
+                        id: projectId
+                    },
+                    beforeSend: function () {
+                        $(".divloading").show();
+                    },
+                    //提交完成后执行，无论成功或者失败，通常配合loading使用
+                    complete: function () {
+                        $(".divloading").hide();
+                    },
+                    //提交成功后调用的方法 *必填项*
+                    success: function (response) {
+                    },
+                    //出错了调用的方法 *必填项*
+                    error: function (message) {
+                        alert("error:" + message);
+                    }
+                });
+            }
+        </script>
+
+</body>
+
+</html>
